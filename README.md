@@ -1,16 +1,32 @@
 # QrShare - Modern QR Code Generator Chrome Extension
 
-**QrShare** is a production-ready, beautiful, and feature-rich Chrome Extension (Manifest V3) that allows users to instantly generate, copy, and download high-resolution QR codes for custom texts, selections, links, or current tab URLs.
+**QrShare** is a production-ready, beautiful, and feature-rich Chrome Extension (Manifest V3) that allows users to instantly generate, copy, and download high-resolution styled QR codes for custom texts, selections, links, or current tab URLs.
 
-Built with a modern web stack utilizing **React 19**, **TypeScript**, **Vite**, **Tailwind CSS v4**, and **Zustand** state persistence.
+Designed with a sleek, native **Google Chrome-style Dark Theme** featuring **Material Blue** highlights. Built with a modern web stack utilizing **React 19**, **TypeScript**, **Vite**, **Tailwind CSS v4**, and **Zustand** state persistence.
 
 ---
 
 ## ✨ Features
 
 - ⚡ **Instant Active Tab QR**: Popup automatically generates a QR code for your current tab URL upon launch (filters out internal `chrome://` or `edge://` pages).
-- ✍️ **Custom Live Input**: Textarea for manual text, URLs, or paragraphs with a live preview, character counter, and debounced generation to maintain UI performance.
-- 🎨 **Adaptive Color Themes**: Cohesive light and dark themes using custom design variables that automatically update the QR code's foreground and background colors to blend into the container.
+- 🧠 **Smart Content Detection**: Analyzes input text in real-time to identify:
+  - **URL Links** (`url`)
+  - **Email Addresses** (`email`)
+  - **Phone Numbers** (`phone`)
+  - **WiFi Network Credentials** (`wifi`)
+  - **Plain Text** (`text` - default fallback)
+- 🏷️ **Dynamic UI Badges**: Shows interactive, colored pill badges next to the analyzed input label (complete with customized Lucide icons, borders, and dark-theme friendly backgrounds matching the active type).
+- 🎨 **Local QR Styling Canvas Engine**: An HTML Canvas drawing engine that generates styled QR codes locally under high error correction (`H`):
+  - **Dot Geometries**: Choose between standard square grids or modern circular dots (scaled at `0.88` to maintain crisp scanability).
+  - **Finder Pattern Geometries**: Automatically filters coordinates for the three 7x7 corner modules, drawing them as unified modern squircles (rounded concentric rectangles) or traditional block squares.
+  - **Custom Colors**: Customize foreground and background colors with built-in Material palettes or input any hex color code.
+  - **Dynamic Center Overlay Icons**: Clears a central masked region safely and renders a high-contrast vector icon drawn dynamically inside the QR code in the active foreground color:
+    - **Phone Number** ➡️ Renders a sleek **mobile phone outline**.
+    - **Email Address** ➡️ Renders a classic **envelope** envelope outline.
+    - **URL Link** ➡️ Renders a modern **globe/web wireframe**.
+    - **WiFi Network** ➡️ Renders concentric **WiFi signal arcs**.
+    - **Plain Text** (fallback) ➡️ Renders your transparent squircle brand logo (`icon-128.png`).
+- 🎨 **Collapsible Styling Panel**: An accordion styling settings panel in the popup permitting live preview updates. Saves custom selections persistently using `chrome.storage.local`.
 - 🛠 **Frictionless Action Triggers**:
   - **Copy Image**: Copies the QR code canvas image blob directly to your system clipboard using the modern `navigator.clipboard.write` API for fast pasting into Slack, Discord, email, or documents.
   - **Copy Text**: Fast clipboard utility to copy the original text contents of the active QR.
@@ -18,7 +34,8 @@ Built with a modern web stack utilizing **React 19**, **TypeScript**, **Vite**, 
   - **Expand**: Triggers an immersive fullscreen modal overlay for quick scanning across distances or screens.
   - **Toast Notifications**: Smooth status alerts confirming action triggers.
 - 📜 **Stored History Panel**: Keeps a sliding list of the last 10 generated items with relative timestamps ("2m ago"), duplicate filtration (bubbles duplicate generations to the top), single-click re-generation, and deletion.
-- 🖱 **Context Menu Integration**: Right-click selections or links in any web page to choose "Generate QR Code". Automatically opens the extension or flags a high-visibility badge fallback (`"NEW"`).
+- 🖱 **Context Menu Superpowers**: Right-click context menus on web pages covering `page`, `link`, `selection`, and `image` contexts. Automatically queries active targets and opens the popup or triggers badge indicators as fallbacks.
+- ⌨️ **Keyboard Shortcut**: Press `Ctrl+Shift+Q` (or `MacCtrl+Shift+Q` on macOS) on any web page to instantly trigger the extension popup panel, immediately querying active elements and generating the QR.
 
 ---
 
@@ -45,14 +62,14 @@ QrShare/
 │   └── icon-128.png       # Extension icon (128x128)
 ├── src/
 │   ├── background/
-│   │   └── serviceWorker.ts  # Background worker & Context Menus handler
+│   │   └── serviceWorker.ts  # Background worker, Context Menus, & Hotkey logic
 │   ├── popup/
 │   │   ├── components/
 │   │   │   ├── ActionsBar.tsx    # Download, copy, and fullscreen actions
+│   │   │   ├── CollapsibleStylingPanel.tsx # Colors, dots, and corners selectors
 │   │   │   ├── HistoryPanel.tsx  # Dynamic list of recent QR codes
-│   │   │   ├── InputSection.tsx  # Debounced custom textarea input
-│   │   │   ├── QRViewer.tsx      # Main QR viewer, loaders, and error states
-│   │   │   └── ThemeToggle.tsx   # Light/dark mode variables toggler
+│   │   │   ├── InputSection.tsx  # Debounced custom text area & type badges
+│   │   │   └── QRViewer.tsx      # Styled HTML Canvas QR code viewer
 │   │   ├── App.tsx       # Main React app shell & active tab querying logic
 │   │   ├── index.css     # CSS Variables, keyframe animations, & Tailwind v4
 │   │   └── main.tsx      # React popup app mount script
@@ -63,7 +80,9 @@ QrShare/
 │   ├── types/
 │   │   └── qr.ts             # Domain typescript interfaces
 │   └── utils/
-│       └── qrGenerator.ts    # QR code generator wrapper
+│       ├── contentDetector.ts # Regex classifier for smart type detection
+│       ├── qrGenerator.ts     # Legacy QR generator (fallback)
+│       └── qrRenderer.ts      # local HTML Canvas styling engine & vector icons
 ├── index.html             # Vite entrypoint HTML file
 ├── postcss.config.js      # PostCSS Tailwind plugins config
 ├── tailwind.config.js     # Tailwind v4 configuration file
