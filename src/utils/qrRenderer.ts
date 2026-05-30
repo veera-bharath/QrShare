@@ -1,8 +1,13 @@
 import QRCode from 'qrcode';
-import type { QRStyle } from '../types/qr';
+import type { QRStyle, ContentType } from '../types/qr';
 
 export const qrRenderer = {
-  render: (canvas: HTMLCanvasElement, text: string, style: QRStyle): Promise<void> => {
+  render: (
+    canvas: HTMLCanvasElement,
+    text: string,
+    style: QRStyle,
+    detectedType: ContentType
+  ): Promise<void> => {
     return new Promise((resolve, reject) => {
       if (!text.trim()) {
         resolve();
@@ -153,40 +158,135 @@ export const qrRenderer = {
         // Bottom-Left corner
         drawFinder(0, (size - 7) * cellSize);
 
-        // 3. Render Center Brand Logo if active
+        // 3. Render Center Logo
         if (style.useCenterLogo) {
-          const logo = new Image();
-          logo.src = '/icon-128.png';
+          const logoSize = 5 * cellSize;
+          const logoX = (canvasSize - logoSize) / 2;
+          const logoY = (canvasSize - logoSize) / 2;
 
-          logo.onload = () => {
-            // Draw a protective background frame matching the canvas background color
-            const logoSize = 5 * cellSize;
-            const logoX = (canvasSize - logoSize) / 2;
-            const logoY = (canvasSize - logoSize) / 2;
+          // Draw the background protective frame
+          ctx.fillStyle = style.backgroundColor;
+          drawRoundedRect(ctx, logoX, logoY, logoSize, logoSize, logoSize * 0.22);
+          ctx.fill();
 
-            ctx.fillStyle = style.backgroundColor;
-            drawRoundedRect(ctx, logoX, logoY, logoSize, logoSize, logoSize * 0.22);
-            ctx.fill();
+          // Prepare to draw active logo
+          const innerSize = logoSize * 0.7;
+          const innerX = logoX + logoSize * 0.15;
+          const innerY = logoY + logoSize * 0.15;
 
-            // Draw the brand logo inside the masked region
-            const imgSize = logoSize * 0.8;
-            const imgOffset = logoSize * 0.1;
-            drawRoundedRect(ctx, logoX + imgOffset, logoY + imgOffset, imgSize, imgSize, imgSize * 0.22);
-            
-            // Render GDI image clipping path
-            ctx.save();
-            ctx.clip();
-            ctx.drawImage(logo, logoX + imgOffset, logoY + imgOffset, imgSize, imgSize);
-            ctx.restore();
+          // If content is a URL, Email, Phone, or WiFi, draw a high-fidelity vector icon
+          if (detectedType !== 'text') {
+            ctx.strokeStyle = style.foregroundColor;
+            ctx.lineWidth = innerSize * 0.08;
+            ctx.lineCap = 'round';
+            ctx.lineJoin = 'round';
+
+            if (detectedType === 'url') {
+              // 🌐 Sleek Globe/Web Icon
+              const radius = innerSize * 0.4;
+              const cx = innerX + innerSize / 2;
+              const cy = innerY + innerSize / 2;
+
+              ctx.beginPath();
+              ctx.arc(cx, cy, radius, 0, 2 * Math.PI);
+              ctx.stroke();
+
+              ctx.beginPath();
+              ctx.moveTo(cx - radius, cy);
+              ctx.lineTo(cx + radius, cy);
+              ctx.stroke();
+
+              ctx.beginPath();
+              ctx.ellipse(cx, cy, radius * 0.4, radius, 0, 0, 2 * Math.PI);
+              ctx.stroke();
+            } else if (detectedType === 'email') {
+              // ✉️ Clean Envelope Icon
+              const padX = innerSize * 0.1;
+              const padY = innerSize * 0.25;
+              const iw = innerSize * 0.8;
+              const ih = innerSize * 0.5;
+
+              ctx.strokeRect(innerX + padX, innerY + padY, iw, ih);
+
+              ctx.beginPath();
+              ctx.moveTo(innerX + padX, innerY + padY);
+              ctx.lineTo(innerX + innerSize / 2, innerY + padY + ih * 0.55);
+              ctx.lineTo(innerX + innerSize - padX, innerY + padY);
+              ctx.stroke();
+            } else if (detectedType === 'phone') {
+              // 📱 Modern Cell Phone Outline
+              const cellW = innerSize * 0.48;
+              const cellH = innerSize * 0.85;
+              const cellX = innerX + (innerSize - cellW) / 2;
+              const cellY = innerY + (innerSize - cellH) / 2;
+
+              drawRoundedRect(ctx, cellX, cellY, cellW, cellH, innerSize * 0.08);
+              ctx.stroke();
+
+              // Top speaker
+              ctx.beginPath();
+              ctx.moveTo(cellX + cellW * 0.35, cellY + cellH * 0.12);
+              ctx.lineTo(cellX + cellW * 0.65, cellY + cellH * 0.12);
+              ctx.stroke();
+
+              // Bottom home circle
+              ctx.beginPath();
+              ctx.arc(cellX + cellW / 2, cellY + cellH * 0.86, innerSize * 0.05, 0, 2 * Math.PI);
+              ctx.stroke();
+            } else if (detectedType === 'wifi') {
+              // 📶 Dynamic WiFi Arc Icon
+              const bcx = innerX + innerSize / 2;
+              const bcy = innerY + innerSize * 0.8;
+
+              // Center dot
+              ctx.fillStyle = style.foregroundColor;
+              ctx.beginPath();
+              ctx.arc(bcx, bcy, innerSize * 0.07, 0, 2 * Math.PI);
+              ctx.fill();
+
+              // Concentric waves
+              ctx.beginPath();
+              ctx.arc(bcx, bcy, innerSize * 0.28, -Math.PI * 0.78, -Math.PI * 0.22);
+              ctx.stroke();
+
+              ctx.beginPath();
+              ctx.arc(bcx, bcy, innerSize * 0.56, -Math.PI * 0.78, -Math.PI * 0.22);
+              ctx.stroke();
+            }
 
             resolve();
-          };
+          } else {
+            // 🏷️ Fallback: Draw default Brand Logo (loaded asynchronously)
+            const logo = new Image();
+            logo.src = '/icon-128.png';
 
-          logo.onerror = (err) => {
-            console.warn('Failed to load center logo image:', err);
-            // Non-blocking: resolve anyway so QR code renders without the logo
-            resolve();
-          };
+            logo.onload = () => {
+              const imgSize = logoSize * 0.76;
+              const imgOffset = logoSize * 0.12;
+              
+              drawRoundedRect(
+                ctx,
+                logoX + imgOffset,
+                logoY + imgOffset,
+                imgSize,
+                imgSize,
+                imgSize * 0.22
+              );
+
+              ctx.save();
+              ctx.clip();
+              ctx.drawImage(logo, logoX + imgOffset, logoY + imgOffset, imgSize, imgSize);
+              ctx.restore();
+
+              resolve();
+            };
+
+            logo.onerror = (err) => {
+              console.warn('Failed to load center logo image:', err);
+              // Resolve anyway to complete rendering
+              resolve();
+            };
+          }
         } else {
           resolve();
         }

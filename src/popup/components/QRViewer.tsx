@@ -4,7 +4,7 @@ import { useQRStore } from '../../store/useQRStore';
 import { qrRenderer } from '../../utils/qrRenderer';
 
 export const QRViewer: React.FC = () => {
-  const { currentText, setQrDataUrl, qrStyle, isLoading, setLoading, addToHistory } = useQRStore();
+  const { currentText, setQrDataUrl, qrStyle, detectedType, isLoading, setLoading, addToHistory } = useQRStore();
   const [error, setError] = useState<string | null>(null);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
 
@@ -20,11 +20,10 @@ export const QRViewer: React.FC = () => {
       setLoading(true);
       setError(null);
       try {
-        // Wait for canvas element mount
         if (canvasRef.current) {
-          await qrRenderer.render(canvasRef.current, trimmed, qrStyle);
+          // Pass detectedType to dynamically render context-specific center icons (phone, envelope, globe, wifi)
+          await qrRenderer.render(canvasRef.current, trimmed, qrStyle, detectedType);
           
-          // Export high-res canvas frame to store for copy/download triggers
           const dataUrl = canvasRef.current.toDataURL('image/png');
           setQrDataUrl(dataUrl);
         }
@@ -41,14 +40,13 @@ export const QRViewer: React.FC = () => {
     };
 
     generateQR();
-  }, [currentText, qrStyle, setQrDataUrl, setLoading, addToHistory]);
+  }, [currentText, qrStyle, detectedType, setQrDataUrl, setLoading, addToHistory]);
 
   const isTextEmpty = !currentText.trim();
 
   return (
     <div className="flex flex-col items-center justify-center w-full">
       <div className="relative w-48 h-48 flex items-center justify-center rounded-2xl bg-surface border border-border p-3 shadow-md transition-all duration-300 hover:shadow-lg accent-glow overflow-hidden select-none">
-        {/* Underlay Canvas always present to allow GDI drawing context */}
         <canvas
           ref={canvasRef}
           className={`w-full h-full object-contain rounded-lg transition-transform duration-300 hover:scale-105 ${
