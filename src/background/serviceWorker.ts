@@ -1,19 +1,34 @@
 /// <reference types="chrome" />
+
 // Background Service Worker for QrShare Extension
 
 chrome.runtime.onInstalled.addListener(() => {
-  // Create Context Menu for selected text
+  // 1. Context Menu for selected text
   chrome.contextMenus.create({
     id: 'generate-qr-selection',
     title: 'Generate QR for selection: "%s"',
     contexts: ['selection'],
   });
 
-  // Create Context Menu for links
+  // 2. Context Menu for links
   chrome.contextMenus.create({
     id: 'generate-qr-link',
     title: 'Generate QR for this link',
     contexts: ['link'],
+  });
+
+  // 3. Context Menu for page URL
+  chrome.contextMenus.create({
+    id: 'generate-qr-page',
+    title: 'Generate QR for this page',
+    contexts: ['page'],
+  });
+
+  // 4. Context Menu for images
+  chrome.contextMenus.create({
+    id: 'generate-qr-image',
+    title: 'Generate QR for this image',
+    contexts: ['image'],
   });
 });
 
@@ -24,6 +39,10 @@ chrome.contextMenus.onClicked.addListener((info: chrome.contextMenus.OnClickData
     textToShare = info.selectionText || '';
   } else if (info.menuItemId === 'generate-qr-link') {
     textToShare = info.linkUrl || '';
+  } else if (info.menuItemId === 'generate-qr-image') {
+    textToShare = info.srcUrl || '';
+  } else if (info.menuItemId === 'generate-qr-page') {
+    textToShare = info.pageUrl || '';
   }
 
   if (textToShare.trim()) {
@@ -45,5 +64,5 @@ chrome.contextMenus.onClicked.addListener((info: chrome.contextMenus.OnClickData
 
 function setBadgeFallback() {
   chrome.action.setBadgeText({ text: 'NEW' });
-  chrome.action.setBadgeBackgroundColor({ color: '#7c5cff' });
+  chrome.action.setBadgeBackgroundColor({ color: '#8ab4f8' }); // Chrome Material Dark Blue
 }

@@ -29,5 +29,14 @@
     "32": "icon-32.png",
     "48": "icon-48.png",
     "128": "icon-128.png"
+  },
+  "commands": {
+    "_execute_action": {
+      "suggested_key": {
+        "default": "Ctrl+Shift+Q",
+        "mac": "MacCtrl+Shift+Q"
+      },
+      "description": "Toggle QrShare extension popup instantly"
+    }
   }
 }

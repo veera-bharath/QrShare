@@ -3,6 +3,7 @@ import { useQRStore } from '../store/useQRStore';
 import { QRViewer } from './components/QRViewer';
 import { ActionsBar } from './components/ActionsBar';
 import { InputSection } from './components/InputSection';
+import { CollapsibleStylingPanel } from './components/CollapsibleStylingPanel';
 import { HistoryPanel } from './components/HistoryPanel';
 
 export default function App() {
@@ -48,7 +49,7 @@ export default function App() {
   }, [setCurrentText]);
 
   return (
-    <main className="w-[360px] p-4 bg-bg text-text transition-colors duration-200 flex flex-col gap-3.5 select-none">
+    <main className="w-[360px] p-4 bg-bg text-text transition-colors duration-200 flex flex-col gap-3.5 select-none animate-fade-in">
       {/* Header */}
       <header className="flex items-center justify-between select-none">
         <div className="flex items-center gap-2">
@@ -69,6 +70,7 @@ export default function App() {
         <QRViewer />
         <ActionsBar />
         <InputSection />
+        <CollapsibleStylingPanel />
         <HistoryPanel />
       </section>
 
