@@ -3,31 +3,15 @@
 @import "tailwindcss";
 
 @theme {
-  --color-bg: var(--color-bg-val);
-  --color-surface: var(--color-surface-val);
-  --color-border: var(--color-border-val);
-  --color-text: var(--color-text-val);
-  --color-accent: var(--color-accent-val);
-}
-
-:root {
-  --color-bg-val: #f5f5f5;
-  --color-surface-val: #ffffff;
-  --color-border-val: #e0e0e0;
-  --color-text-val: #1f1f1f;
-  --color-accent-val: #7c5cff;
-}
-
-.dark {
-  --color-bg-val: #1f1f1f;
-  --color-surface-val: #2a2a2a;
-  --color-border-val: #3a3a3a;
-  --color-text-val: #e5e5e5;
-  --color-accent-val: #7c5cff;
+  --color-bg: #1f1f1f;          /* Chrome Dark Gray background */
+  --color-surface: #2a2a2a;     /* Chrome surface gray container */
+  --color-border: #3a3a3a;      /* Sleek dark border */
+  --color-text: #e5e5e5;        /* Neutral light gray text */
+  --color-accent: #8ab4f8;      /* Chrome Material Blue accent */
 }
 
 @utility accent-glow {
-  box-shadow: 0 0 15px -3px rgba(124, 92, 255, 0.4);
+  box-shadow: 0 0 15px -3px rgba(138, 180, 248, 0.25);
 }
 
 @utility glass-panel {
@@ -35,10 +19,8 @@
 }
 
 body {
-  background-color: var(--color-bg-val);
-  color: var(--color-text-val);
-  transition-property: color, background-color, border-color;
-  transition-duration: 200ms;
+  background-color: #1f1f1f;
+  color: #e5e5e5;
   -webkit-font-smoothing: antialiased;
   overflow: hidden;
   user-select: none;
@@ -53,11 +35,11 @@ body {
   background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  background: var(--color-border-val);
+  background: #3a3a3a;
   border-radius: 3px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: var(--color-accent-val);
+  background: #8ab4f8;
 }
 
 /* Animations and transitions */
@@ -96,4 +78,3 @@ body {
 .animate-pulse-slow {
   animation: pulseSlow 3s ease-in-out infinite;
 }
-

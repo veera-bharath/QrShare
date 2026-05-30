@@ -2,7 +2,7 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import type { StateStorage } from 'zustand/middleware';
-import type { QRItem, ThemeType } from '../types/qr';
+import type { QRItem } from '../types/qr';
 
 // Asynchronous persistent storage manager supporting Chrome API & LocalStorage
 const chromeStorage: StateStorage = {
@@ -45,7 +45,6 @@ interface QRStore {
   currentText: string;
   qrDataUrl: string;
   history: QRItem[];
-  theme: ThemeType;
   isLoading: boolean;
   
   setCurrentText: (text: string) => void;
@@ -54,7 +53,6 @@ interface QRStore {
   addToHistory: (text: string, title?: string) => void;
   deleteHistoryItem: (id: string) => void;
   clearHistory: () => void;
-  setTheme: (theme: ThemeType) => void;
 }
 
 export const useQRStore = create<QRStore>()(
@@ -63,7 +61,6 @@ export const useQRStore = create<QRStore>()(
       currentText: '',
       qrDataUrl: '',
       history: [],
-      theme: 'dark', // Default theme is dark
       isLoading: false,
 
       setCurrentText: (text) => set({ currentText: text }),
@@ -75,7 +72,6 @@ export const useQRStore = create<QRStore>()(
         if (!trimmedText) return;
 
         set((state) => {
-          // Avoid duplicate items in history by removing old matching items
           const filteredHistory = state.history.filter(
             (item) => item.text.trim() !== trimmedText
           );
@@ -98,16 +94,12 @@ export const useQRStore = create<QRStore>()(
         })),
 
       clearHistory: () => set({ history: [] }),
-      
-      setTheme: (theme) => set({ theme }),
     }),
     {
-      name: 'qrshare-store-v1',
+      name: 'qrshare-store-v2', // Incremented storage version since schema changed
       storage: createJSONStorage(() => chromeStorage),
-      // Only persist history and theme; current text and active URL will be resolved dynamically on load
       partialize: (state) => ({
         history: state.history,
-        theme: state.theme,
       }),
     }
   )

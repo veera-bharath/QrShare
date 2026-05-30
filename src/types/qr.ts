@@ -4,5 +4,3 @@ export interface QRItem {
   timestamp: number;
   title?: string;
 }
-
-export type ThemeType = 'light' | 'dark';

@@ -4,7 +4,7 @@ import { useQRStore } from '../../store/useQRStore';
 import { qrGenerator } from '../../utils/qrGenerator';
 
 export const QRViewer: React.FC = () => {
-  const { currentText, qrDataUrl, setQrDataUrl, theme, isLoading, setLoading, addToHistory } = useQRStore();
+  const { currentText, qrDataUrl, setQrDataUrl, isLoading, setLoading, addToHistory } = useQRStore();
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -19,8 +19,8 @@ export const QRViewer: React.FC = () => {
       setLoading(true);
       setError(null);
       try {
-        const isDark = theme === 'dark';
-        const dataUrl = await qrGenerator.generate(trimmed, isDark);
+        // Permanently set theme parameter to dark (true) for Chrome dark mode integration
+        const dataUrl = await qrGenerator.generate(trimmed, true);
         setQrDataUrl(dataUrl);
 
         // Add to history (avoid duplication is handled in the store)
@@ -35,7 +35,7 @@ export const QRViewer: React.FC = () => {
     };
 
     generateQR();
-  }, [currentText, theme, setQrDataUrl, setLoading, addToHistory]);
+  }, [currentText, setQrDataUrl, setLoading, addToHistory]);
 
   const isTextEmpty = !currentText.trim();
 

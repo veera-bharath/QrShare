@@ -1,24 +1,15 @@
 import { useEffect } from 'react';
 import { useQRStore } from '../store/useQRStore';
-import { ThemeToggle } from './components/ThemeToggle';
 import { QRViewer } from './components/QRViewer';
 import { ActionsBar } from './components/ActionsBar';
 import { InputSection } from './components/InputSection';
 import { HistoryPanel } from './components/HistoryPanel';
 
 export default function App() {
-  const { setCurrentText, theme } = useQRStore();
+  const { setCurrentText } = useQRStore();
 
   useEffect(() => {
-    // 1. Sync theme class on init
-    const root = window.document.documentElement;
-    if (theme === 'dark') {
-      root.classList.add('dark');
-    } else {
-      root.classList.remove('dark');
-    }
-
-    // 2. Fetch context menu pending text or active tab URL
+    // Fetch context menu pending text or active tab URL
     const initializeText = async () => {
       if (typeof chrome !== 'undefined' && chrome.storage && chrome.storage.local) {
         // First check for pending text from context menu click
@@ -54,7 +45,7 @@ export default function App() {
     };
 
     initializeText();
-  }, [setCurrentText, theme]);
+  }, [setCurrentText]);
 
   return (
     <main className="w-[360px] p-4 bg-bg text-text transition-colors duration-200 flex flex-col gap-3.5 select-none">
@@ -67,11 +58,10 @@ export default function App() {
             className="w-7 h-7 object-contain rounded-lg shadow-sm accent-glow select-none"
             draggable={false}
           />
-          <span className="font-bold text-lg tracking-wide bg-gradient-to-r from-accent to-purple-500 bg-clip-text text-transparent">
+          <span className="font-bold text-lg tracking-wide bg-gradient-to-r from-accent to-blue-400 bg-clip-text text-transparent">
             QrShare
           </span>
         </div>
-        <ThemeToggle />
       </header>
 
       {/* Content Area */}
