@@ -1,5 +1,4 @@
 import { useEffect } from 'react';
-import { QrCode } from 'lucide-react';
 import { useQRStore } from '../store/useQRStore';
 import { ThemeToggle } from './components/ThemeToggle';
 import { QRViewer } from './components/QRViewer';
@@ -62,9 +61,12 @@ export default function App() {
       {/* Header */}
       <header className="flex items-center justify-between select-none">
         <div className="flex items-center gap-2">
-          <div className="p-1.5 rounded-xl bg-accent text-white shadow-md accent-glow">
-            <QrCode size={18} className="stroke-[2.5]" />
-          </div>
+          <img
+            src="/icon-32.png"
+            alt="QrShare Logo"
+            className="w-7 h-7 object-contain rounded-lg shadow-sm accent-glow select-none"
+            draggable={false}
+          />
           <span className="font-bold text-lg tracking-wide bg-gradient-to-r from-accent to-purple-500 bg-clip-text text-transparent">
             QrShare
           </span>
