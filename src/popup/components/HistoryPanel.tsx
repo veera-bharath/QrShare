@@ -61,7 +61,7 @@ export const HistoryPanel: React.FC = () => {
           <div
             key={item.id}
             onClick={() => handleItemClick(item.text)}
-            className="group flex items-center justify-between p-2 rounded-xl bg-surface border border-border hover:border-accent hover:bg-accent/5 cursor-pointer transition-all duration-200 relative overflow-hidden"
+            className="group flex items-center justify-between p-2 rounded-xl bg-surface border border-border hover:border-accent hover:bg-accent/5 cursor-pointer transition-all duration-200 relative overflow-hidden shrink-0 min-h-[44px]"
           >
             <div className="flex items-center gap-2 max-w-[85%]">
               <CornerDownRight size={10} className="text-accent/60 shrink-0" />
