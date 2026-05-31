@@ -33,7 +33,7 @@ Designed with a sleek, native **Google Chrome-style Dark Theme** featuring **Mat
   - **Download**: Prompts a local high-resolution PNG download with clean filenames reflecting domain hosts or content snippets.
   - **Expand**: Triggers an immersive fullscreen modal overlay for quick scanning across distances or screens.
   - **Toast Notifications**: Smooth status alerts confirming action triggers.
-- 📜 **Stored History Panel**: Keeps a sliding list of the last 10 generated items with relative timestamps ("2m ago"), duplicate filtration (bubbles duplicate generations to the top), single-click re-generation, and deletion.
+- 📜 **Stored History Panel**: Keeps a sliding list of the last 10 generated items with relative timestamps ("2m ago"), duplicate filtration (bubbles duplicate generations to the top), single-click re-generation, and deletion. Features advanced vertical layout guards (`shrink-0` & `min-h-[44px]`) to ensure the items never squash or distort in crowded flex viewports.
 - 🖱 **Context Menu Superpowers**: Right-click context menus on web pages covering `page`, `link`, `selection`, and `image` contexts. Automatically queries active targets and opens the popup or triggers badge indicators as fallbacks.
 - ⌨️ **Keyboard Shortcut**: Press `Ctrl+Shift+Q` (or `MacCtrl+Shift+Q` on macOS) on any web page to instantly trigger the extension popup panel, immediately querying active elements and generating the QR.
 
