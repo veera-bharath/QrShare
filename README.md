@@ -9,23 +9,23 @@ Designed with a sleek, native **Google Chrome-style Dark Theme** featuring **Mat
 ## ✨ Features
 
 - ⚡ **Instant Active Tab QR**: Popup automatically generates a QR code for your current tab URL upon launch (filters out internal `chrome://` or `edge://` pages).
-- 🧠 **Smart Content Detection**: Analyzes input text in real-time to identify:
+- 🧠 **Smart Content Detection**: Analyzes input text in real-time using the `URL` constructor and pattern matching to identify:
   - **URL Links** (`url`)
   - **Email Addresses** (`email`)
-  - **Phone Numbers** (`phone`)
+  - **Phone Numbers** (`phone`) — including short `tel:` URIs like `tel:911`
   - **WiFi Network Credentials** (`wifi`)
-  - **Plain Text** (`text` - default fallback)
+  - **Plain Text** (`text` — default fallback)
 - 🏷️ **Dynamic UI Badges**: Shows interactive, colored pill badges next to the analyzed input label (complete with customized Lucide icons, borders, and dark-theme friendly backgrounds matching the active type).
 - 🎨 **Local QR Styling Canvas Engine**: An HTML Canvas drawing engine that generates styled QR codes locally under high error correction (`H`):
   - **Dot Geometries**: Choose between standard square grids or modern circular dots (scaled at `0.88` to maintain crisp scanability).
-  - **Finder Pattern Geometries**: Automatically filters coordinates for the three 7x7 corner modules, drawing them as unified modern squircles (rounded concentric rectangles) or traditional block squares.
+  - **Finder Pattern Geometries**: Automatically filters coordinates for the three 7×7 corner modules, drawing them as unified modern squircles (rounded concentric rectangles) or traditional block squares.
   - **Custom Colors**: Customize foreground and background colors with built-in Material palettes or input any hex color code.
   - **Dynamic Center Overlay Icons**: Clears a central masked region safely and renders a high-contrast vector icon drawn dynamically inside the QR code in the active foreground color:
-    - **Phone Number** ➡️ Renders a sleek **mobile phone outline**.
-    - **Email Address** ➡️ Renders a classic **envelope** envelope outline.
-    - **URL Link** ➡️ Renders a modern **globe/web wireframe**.
-    - **WiFi Network** ➡️ Renders concentric **WiFi signal arcs**.
-    - **Plain Text** (fallback) ➡️ Renders your transparent squircle brand logo (`icon-128.png`).
+    - **Phone Number** → Renders a sleek **mobile phone outline**.
+    - **Email Address** → Renders a classic **envelope** outline.
+    - **URL Link** → Renders a modern **globe/web wireframe**.
+    - **WiFi Network** → Renders concentric **WiFi signal arcs**.
+    - **Plain Text** (fallback) → Renders your transparent squircle brand logo (`icon-128.png`), cached after first load.
 - 🎨 **Collapsible Styling Panel**: An accordion styling settings panel in the popup permitting live preview updates. Saves custom selections persistently using `chrome.storage.local`.
 - 🛠 **Frictionless Action Triggers**:
   - **Copy Image**: Copies the QR code canvas image blob directly to your system clipboard using the modern `navigator.clipboard.write` API for fast pasting into Slack, Discord, email, or documents.
@@ -34,8 +34,8 @@ Designed with a sleek, native **Google Chrome-style Dark Theme** featuring **Mat
   - **Expand**: Triggers an immersive fullscreen modal overlay for quick scanning across distances or screens.
   - **Toast Notifications**: Smooth status alerts confirming action triggers.
 - 📜 **Stored History Panel**: Keeps a sliding list of the last 10 generated items with relative timestamps ("2m ago"), duplicate filtration (bubbles duplicate generations to the top), single-click re-generation, and deletion. Features advanced vertical layout guards (`shrink-0` & `min-h-[44px]`) to ensure the items never squash or distort in crowded flex viewports.
-- 🖱 **Context Menu Superpowers**: Right-click context menus on web pages covering `page`, `link`, `selection`, and `image` contexts. Automatically queries active targets and opens the popup or triggers badge indicators as fallbacks.
-- ⌨️ **Keyboard Shortcut**: Press `Ctrl+Shift+Q` (or `MacCtrl+Shift+Q` on macOS) on any web page to instantly trigger the extension popup panel, immediately querying active elements and generating the QR.
+- 🖱 **Context Menu Superpowers**: Right-click context menus on web pages covering `page`, `link`, `selection`, and `image` contexts. Automatically queries active targets and opens the popup or triggers badge indicators as fallbacks. Context menu triggers expire after 30 seconds to prevent stale entries from hijacking a later unrelated popup open.
+- ⌨️ **Keyboard Shortcut**: Press `Ctrl+Shift+Q` (or `MacCtrl+Shift+Q` on macOS) on any web page to instantly trigger the extension popup panel.
 
 ---
 
@@ -43,9 +43,9 @@ Designed with a sleek, native **Google Chrome-style Dark Theme** featuring **Mat
 
 - **Core**: React 19, TypeScript
 - **Styling**: Tailwind CSS v4, PostCSS, Lucide React (Icons), Outfit Google Typography
-- **State & Storage**: Zustand (State Store with customized asynchronous `chrome.storage.local` persistence middleware)
+- **State & Storage**: Zustand (state store with a custom asynchronous `chrome.storage.local` persistence adapter that deduplicates writes)
 - **Bundler**: Vite 8 (Rollup custom multi-entry configuration for splitting the popup UI and the background service worker)
-- **QR Engine**: `qrcode` (highly reliable ISO/IEC 18004 specification generator)
+- **QR Engine**: `qrcode` (ISO/IEC 18004 specification generator)
 
 ---
 
@@ -54,41 +54,40 @@ Designed with a sleek, native **Google Chrome-style Dark Theme** featuring **Mat
 ```text
 QrShare/
 ├── dist/                  # Compiled production build output
-├── public/                # Static public assets (resized icons, manifest.json)
+├── public/                # Static public assets (icons, manifest.json)
 │   ├── manifest.json      # Chrome Extension Manifest V3
-│   ├── icon-16.png        # Extension icon (16x16)
-│   ├── icon-32.png        # Extension icon (32x32)
-│   ├── icon-48.png        # Extension icon (48x48)
-│   └── icon-128.png       # Extension icon (128x128)
+│   ├── icon-16.png
+│   ├── icon-32.png
+│   ├── icon-48.png
+│   └── icon-128.png
 ├── src/
 │   ├── background/
-│   │   └── serviceWorker.ts  # Background worker, Context Menus, & Hotkey logic
+│   │   └── serviceWorker.ts     # Context menus, badge fallback, TTL-stamped storage writes
 │   ├── popup/
 │   │   ├── components/
-│   │   │   ├── ActionsBar.tsx    # Download, copy, and fullscreen actions
-│   │   │   ├── CollapsibleStylingPanel.tsx # Colors, dots, and corners selectors
-│   │   │   ├── HistoryPanel.tsx  # Dynamic list of recent QR codes
-│   │   │   ├── InputSection.tsx  # Debounced custom text area & type badges
-│   │   │   └── QRViewer.tsx      # Styled HTML Canvas QR code viewer
-│   │   ├── App.tsx       # Main React app shell & active tab querying logic
-│   │   ├── index.css     # CSS Variables, keyframe animations, & Tailwind v4
-│   │   └── main.tsx      # React popup app mount script
+│   │   │   ├── ActionsBar.tsx           # Download, copy, and fullscreen actions
+│   │   │   ├── CollapsibleStylingPanel.tsx  # Colors, dots, and corners selectors
+│   │   │   ├── HistoryPanel.tsx         # Dynamic list of recent QR codes
+│   │   │   ├── InputSection.tsx         # Debounced textarea & type badges
+│   │   │   └── QRViewer.tsx             # Styled HTML Canvas QR renderer
+│   │   ├── App.tsx       # Main React app shell & active tab / context menu init
+│   │   ├── index.css     # CSS variables, keyframe animations & Tailwind v4
+│   │   └── main.tsx      # React popup mount script
 │   ├── storage/
-│   │   └── storageService.ts # Standardized storage wrapper with web fallback
+│   │   └── storageService.ts    # Thin chrome.storage.local wrapper with localStorage fallback
 │   ├── store/
-│   │   └── useQRStore.ts     # Zustand store persisted with Chrome storage API
+│   │   └── useQRStore.ts        # Zustand store persisted with Chrome storage API
 │   ├── types/
-│   │   └── qr.ts             # Domain typescript interfaces
+│   │   └── qr.ts                # Domain TypeScript interfaces (QRItem, QRStyle, ContentType)
 │   └── utils/
-│       ├── contentDetector.ts # Regex classifier for smart type detection
-│       ├── qrGenerator.ts     # Legacy QR generator (fallback)
-│       └── qrRenderer.ts      # local HTML Canvas styling engine & vector icons
-├── index.html             # Vite entrypoint HTML file
-├── postcss.config.js      # PostCSS Tailwind plugins config
-├── tailwind.config.js     # Tailwind v4 configuration file
-├── tsconfig.json          # TypeScript workspace definitions
-├── tsconfig.app.json      # TypeScript compiler app instructions
-└── vite.config.ts         # Vite bundler & Rollup multiple-entrypoint engine
+│       ├── contentDetector.ts   # Smart type classifier using URL constructor + pattern matching
+│       └── qrRenderer.ts        # HTML Canvas styling engine & vector center icons
+├── CLAUDE.md              # Codebase guide for Claude Code
+├── index.html             # Vite entrypoint HTML
+├── postcss.config.js      # PostCSS / Tailwind v4 plugin config
+├── tsconfig.json          # TypeScript workspace config
+├── tsconfig.node.json     # TypeScript config for Vite/Node tooling
+└── vite.config.ts         # Vite bundler with dual popup + background entrypoints
 ```
 
 ---
@@ -97,36 +96,32 @@ QrShare/
 
 ### Prerequisites
 
-Make sure you have Node.js (v18+) and npm installed.
+Node.js (v18+) and npm.
 
 ### Installation
 
-1. Clone or download the repository:
-   ```bash
-   git clone https://github.com/veera-bharath/QrShare.git
-   cd QrShare
-   ```
-2. Install npm dependencies:
-   ```bash
-   npm install
-   ```
-
-### Development & Production Build
-
-To compile the TypeScript source files and bundle styling assets into the `/dist` output folder:
 ```bash
-npm run build
+git clone https://github.com/veera-bharath/QrShare.git
+cd QrShare
+npm install
 ```
+
+### Development
+
+```bash
+npm run dev      # Vite dev server — runs popup in browser (no Chrome APIs, uses localStorage fallback)
+npm run build    # TypeScript check + production build → dist/
+npm run lint     # ESLint
+```
+
+In dev mode the popup seeds its input from the `?url=` query parameter (defaults to `https://github.com`).
 
 ---
 
-## ⚙️ How to Load in Google Chrome
+## ⚙️ Loading in Google Chrome
 
-Once the build completes and creates the `/dist` directory, you can load it natively in Chrome:
-
-1. Open **Google Chrome** and navigate to `chrome://extensions/`.
-2. Turn on the **Developer mode** toggle in the top-right corner.
-3. Click the **Load unpacked** button in the top-left corner.
-4. Select the `/dist` directory inside the repository:
-   `d:\Projects\QrShare\dist`
-5. Pin **QrShare** to your extension bar and enjoy!
+1. Run `npm run build` to produce the `dist/` folder.
+2. Open `chrome://extensions/` in Chrome.
+3. Enable **Developer mode** (top-right toggle).
+4. Click **Load unpacked** and select the `dist/` directory.
+5. Pin **QrShare** to your extension bar.
