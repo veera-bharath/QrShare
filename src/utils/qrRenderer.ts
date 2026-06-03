@@ -1,6 +1,19 @@
 import QRCode from 'qrcode';
 import type { QRStyle, ContentType } from '../types/qr';
 
+// Module-level cache so the brand logo is only fetched once per extension session
+let _logoCache: HTMLImageElement | null = null;
+
+function loadLogo(): Promise<HTMLImageElement> {
+  if (_logoCache) return Promise.resolve(_logoCache);
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.onload = () => { _logoCache = img; resolve(img); };
+    img.onerror = (err) => reject(err);
+    img.src = '/icon-128.png';
+  });
+}
+
 export const qrRenderer = {
   render: (
     canvas: HTMLCanvasElement,
@@ -102,7 +115,7 @@ export const qrRenderer = {
         // 2. Draw unified Finder Patterns (corners)
         const drawFinder = (startX: number, startY: number) => {
           const outerSize = 7 * cellSize;
-          
+
           if (style.cornerType === 'rounded') {
             const outerRadius = outerSize * 0.22;
             ctx.fillStyle = style.foregroundColor;
@@ -256,36 +269,32 @@ export const qrRenderer = {
 
             resolve();
           } else {
-            // 🏷️ Fallback: Draw default Brand Logo (loaded asynchronously)
-            const logo = new Image();
-            logo.src = '/icon-128.png';
+            // Fallback: Draw default Brand Logo from cache
+            loadLogo()
+              .then((logo) => {
+                const imgSize = logoSize * 0.76;
+                const imgOffset = logoSize * 0.12;
 
-            logo.onload = () => {
-              const imgSize = logoSize * 0.76;
-              const imgOffset = logoSize * 0.12;
-              
-              drawRoundedRect(
-                ctx,
-                logoX + imgOffset,
-                logoY + imgOffset,
-                imgSize,
-                imgSize,
-                imgSize * 0.22
-              );
+                drawRoundedRect(
+                  ctx,
+                  logoX + imgOffset,
+                  logoY + imgOffset,
+                  imgSize,
+                  imgSize,
+                  imgSize * 0.22
+                );
 
-              ctx.save();
-              ctx.clip();
-              ctx.drawImage(logo, logoX + imgOffset, logoY + imgOffset, imgSize, imgSize);
-              ctx.restore();
+                ctx.save();
+                ctx.clip();
+                ctx.drawImage(logo, logoX + imgOffset, logoY + imgOffset, imgSize, imgSize);
+                ctx.restore();
 
-              resolve();
-            };
-
-            logo.onerror = (err) => {
-              console.warn('Failed to load center logo image:', err);
-              // Resolve anyway to complete rendering
-              resolve();
-            };
+                resolve();
+              })
+              .catch((err) => {
+                console.warn('Failed to load center logo image:', err);
+                resolve();
+              });
           }
         } else {
           resolve();

@@ -6,28 +6,34 @@ import { InputSection } from './components/InputSection';
 import { CollapsibleStylingPanel } from './components/CollapsibleStylingPanel';
 import { HistoryPanel } from './components/HistoryPanel';
 
+const PENDING_QR_TTL_MS = 30_000;
+
 export default function App() {
   const { setCurrentText } = useQRStore();
 
   useEffect(() => {
-    // Fetch context menu pending text or active tab URL
-    const initializeText = async () => {
+    const initializeText = () => {
       if (typeof chrome !== 'undefined' && chrome.storage && chrome.storage.local) {
-        // First check for pending text from context menu click
         chrome.storage.local.get(['pendingQRText'], (result: { [key: string]: any }) => {
-          if (result.pendingQRText) {
-            const pendingText = result.pendingQRText;
+          const pending = result.pendingQRText;
+
+          // Support both the legacy string format and the current { text, ts } format
+          const pendingText: string | undefined =
+            typeof pending === 'object' ? pending?.text : pending;
+          const pendingTs: number =
+            typeof pending === 'object' ? (pending?.ts ?? 0) : Date.now();
+
+          if (pendingText && Date.now() - pendingTs < PENDING_QR_TTL_MS) {
             setCurrentText(pendingText);
-            
-            // Clean up storage and badge
             chrome.storage.local.remove(['pendingQRText']);
             chrome.action.setBadgeText({ text: '' });
           } else {
-            // Otherwise, grab current tab URL
+            // Clean up any stale pending entry before falling through
+            if (pending) chrome.storage.local.remove(['pendingQRText']);
+
             chrome.tabs.query({ active: true, currentWindow: true }, (tabs: chrome.tabs.Tab[]) => {
               if (tabs && tabs[0] && tabs[0].url) {
                 const activeUrl = tabs[0].url;
-                // Exclude internal chrome:// or edge:// pages for better utility
                 if (!activeUrl.startsWith('chrome://') && !activeUrl.startsWith('edge://')) {
                   setCurrentText(activeUrl);
                 } else {

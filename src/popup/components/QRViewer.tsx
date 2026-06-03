@@ -16,30 +16,31 @@ export const QRViewer: React.FC = () => {
       return;
     }
 
+    let cancelled = false;
+
     const generateQR = async () => {
       setLoading(true);
       setError(null);
       try {
         if (canvasRef.current) {
-          // Pass detectedType to dynamically render context-specific center icons (phone, envelope, globe, wifi)
           await qrRenderer.render(canvasRef.current, trimmed, qrStyle, detectedType);
-          
+          if (cancelled) return;
           const dataUrl = canvasRef.current.toDataURL('image/png');
           setQrDataUrl(dataUrl);
+          addToHistory(trimmed);
         }
-
-        // Add to history
-        addToHistory(trimmed);
       } catch (err: any) {
+        if (cancelled) return;
         console.error('Failed to render styled QR code:', err);
         setError(err.message || 'Failed to generate styled QR Code.');
         setQrDataUrl('');
       } finally {
-        setLoading(false);
+        if (!cancelled) setLoading(false);
       }
     };
 
     generateQR();
+    return () => { cancelled = true; };
   }, [currentText, qrStyle, detectedType, setQrDataUrl, setLoading, addToHistory]);
 
   const isTextEmpty = !currentText.trim();

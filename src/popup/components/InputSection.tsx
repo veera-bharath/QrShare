@@ -2,6 +2,8 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Trash2, Link2, Mail, Phone, Wifi, FileText } from 'lucide-react';
 import { useQRStore } from '../../store/useQRStore';
 
+const MAX_INPUT_LENGTH = 2000;
+
 export const InputSection: React.FC = () => {
   const { currentText, setCurrentText, detectedType } = useQRStore();
   const [localText, setLocalText] = useState(currentText);
@@ -40,8 +42,8 @@ export const InputSection: React.FC = () => {
     setLocalText(e.target.value);
   };
 
-  const isLimitNearing = localText.length > 1000;
-  const isLimitExceeded = localText.length > 2000;
+  const isLimitNearing = localText.length > MAX_INPUT_LENGTH * 0.5;
+  const isLimitExceeded = localText.length > MAX_INPUT_LENGTH;
 
   // Render the smart type badge with custom icons
   const renderTypeBadge = () => {
@@ -113,18 +115,18 @@ export const InputSection: React.FC = () => {
           onChange={handleInputChange}
           placeholder="Paste URL, email, wifi credentials, or custom text here..."
           className="w-full min-h-[72px] max-h-[96px] p-3 text-sm rounded-xl bg-surface border border-border focus:border-accent focus:ring-1 focus:ring-accent outline-none text-text transition-all duration-200 resize-none font-normal"
-          maxLength={2500}
+          maxLength={MAX_INPUT_LENGTH}
         />
-        
+
         {localText.length > 0 && (
           <div className={`absolute bottom-2 right-2 text-[9px] px-1.5 py-0.5 rounded font-medium select-none ${
-            isLimitExceeded 
-              ? 'bg-red-500/10 text-red-500' 
-              : isLimitNearing 
-                ? 'bg-amber-500/10 text-amber-500' 
+            isLimitExceeded
+              ? 'bg-red-500/10 text-red-500'
+              : isLimitNearing
+                ? 'bg-amber-500/10 text-amber-500'
                 : 'bg-text/5 text-text/40'
           }`}>
-            {localText.length}/2000
+            {localText.length}/{MAX_INPUT_LENGTH}
           </div>
         )}
       </div>

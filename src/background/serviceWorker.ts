@@ -46,8 +46,8 @@ chrome.contextMenus.onClicked.addListener((info: chrome.contextMenus.OnClickData
   }
 
   if (textToShare.trim()) {
-    // Save the text to chrome storage for the popup to retrieve
-    chrome.storage.local.set({ pendingQRText: textToShare }, () => {
+    // Store with a timestamp so the popup can discard stale entries
+    chrome.storage.local.set({ pendingQRText: { text: textToShare, ts: Date.now() } }, () => {
       // Try to open the popup programmatically (requires Chrome 99+)
       const action = chrome.action as any;
       if (action && typeof action.openPopup === 'function') {
